@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firma electronica</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #17202a;
+      --muted: #647181;
+      --line: #d9dee7;
+      --primary: #1f6feb;
+      --primary-dark: #195ec9;
+      --danger: #b42318;
+      --success: #147a4b;
+      --shadow: 0 14px 36px rgba(20, 29, 45, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand strong {
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .brand span,
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .viewer,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .viewer {
+      min-height: 72vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .signature-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .signature-mode {
+      display: none;
+      gap: 6px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .signature-mode.visible {
+      display: flex;
+    }
+
+    .signature-mode button {
+      width: auto;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f2f4f7;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .signature-mode button.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .signature-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .signature-actions a,
+    .signature-actions button {
+      width: auto;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .signature-actions a {
+      display: inline-flex;
+      align-items: center;
+      background: #edf4ff;
+      color: var(--primary);
+      border: 1px solid #c8dcff;
+    }
+
+    .signature-actions button {
+      background: #f2f4f7;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .signature-pad {
+      position: relative;
+      flex: 1;
+      min-height: 64vh;
+      background: #f8fafc;
+    }
+
+    .signature-pad canvas {
+      width: 100%;
+      height: 100%;
+      min-height: 64vh;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+      background:
+        linear-gradient(to right, transparent 0, transparent 24px, rgba(31, 111, 235, 0.08) 25px, transparent 26px),
+        linear-gradient(to bottom, transparent 0, transparent 24px, rgba(31, 111, 235, 0.08) 25px, transparent 26px),
+        #f8fafc;
+      background-size: 26px 26px;
+    }
+
+    .signature-placeholder {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 16px;
+      text-align: center;
+      padding: 28px;
+    }
+
+    .signature-placeholder.hidden {
+      display: none;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 10px 12px;
+      margin: 0 0 18px;
+      font-size: 14px;
+    }
+
+    dt {
+      color: var(--muted);
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .terms {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .terms input {
+      width: 18px;
+      height: 18px;
+      margin: 2px 0 0;
+    }
+
+    button {
+      width: 100%;
+      min-height: 46px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .message {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .message.error {
+      border-color: #f0b8b3;
+      color: var(--danger);
+      background: #fff4f2;
+    }
+
+    .message.success {
+      border-color: #a7d8be;
+      color: var(--success);
+      background: #f0fbf5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        padding: 16px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        order: -1;
+      }
+
+      .viewer,
+      .signature-pad,
+      .signature-pad canvas {
+        min-height: 62vh;
+        height: 62vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <strong>Firma electronica</strong>
+        <span id="subtitle">Documento pendiente</span>
+      </div>
+      <div class="status" id="status">Validando enlace</div>
+    </header>
+
+    <section class="layout">
+      <div class="viewer">
+        <div class="signature-toolbar">
+          <span id="signatureInstruction">Firme dentro del recuadro con mouse o dedo</span>
+          <div class="signature-actions">
+            <a id="pdfLink" href="#" target="_blank" rel="noopener">Ver PDF</a>
+            <button id="clearSignatureButton" type="button">Limpiar</button>
+          </div>
+        </div>
+        <div id="signatureMode" class="signature-mode">
+          <button id="signatureModeDraw" class="active" type="button">Firma</button>
+          <button id="signatureModeFingerprint" type="button">Huella</button>
+        </div>
+        <div class="signature-pad">
+          <canvas id="signatureCanvas"></canvas>
+          <div id="signaturePlaceholder" class="signature-placeholder">Dibuje su firma aqui</div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <h1 id="title">Documento</h1>
+        <dl>
+          <dt>Firmante</dt>
+          <dd id="signerName">-</dd>
+          <dt>Email</dt>
+          <dd id="signerEmail">-</dd>
+          <dt>Tipo</dt>
+          <dd id="documentType">-</dd>
+          <dt>Archivo</dt>
+          <dd id="fileName">-</dd>
+          <dt>Vence</dt>
+          <dd id="expiresAt">-</dd>
+          <dt>Hash</dt>
+          <dd id="hashOriginal">-</dd>
+        </dl>
+
+        <label class="terms" for="acceptTerms">
+          <input id="acceptTerms" type="checkbox">
+          <span>Acepto firmar electronicamente este documento y dejo constancia de mi conformidad con su contenido.</span>
+        </label>
+
+        <button id="signButton" type="button" disabled>Firmar electronicamente</button>
+        <div id="message" class="message hidden"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const token = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).pop() || '');
+    const statusEl = document.getElementById('status');
+    const subtitleEl = document.getElementById('subtitle');
+    const messageEl = document.getElementById('message');
+    const acceptTermsEl = document.getElementById('acceptTerms');
+    const signButtonEl = document.getElementById('signButton');
+    const pdfLinkEl = document.getElementById('pdfLink');
+    const signatureCanvasEl = document.getElementById('signatureCanvas');
+    const signaturePlaceholderEl = document.getElementById('signaturePlaceholder');
+    const clearSignatureButtonEl = document.getElementById('clearSignatureButton');
+    const signatureInstructionEl = document.getElementById('signatureInstruction');
+    const signatureModeEl = document.getElementById('signatureMode');
+    const signatureModeDrawEl = document.getElementById('signatureModeDraw');
+    const signatureModeFingerprintEl = document.getElementById('signatureModeFingerprint');
+    const signatureContext = signatureCanvasEl.getContext('2d');
+    const isMobileDevice = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    let isDrawing = false;
+    let hasSignature = false;
+    let lastPoint = null;
+    let signatureMethod = 'firma';
+    let signatureDistance = 0;
+    let evidencePointCount = 0;
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value || '-';
+    }
+
+    function showMessage(text, kind) {
+      messageEl.textContent = text;
+      messageEl.className = `message ${kind || ''}`;
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return '-';
+      }
+
+      return new Intl.DateTimeFormat('es-AR', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      }).format(new Date(value));
+    }
+
+    async function fetchJson(url, options) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        let error = 'No se pudo completar la operacion.';
+        try {
+          const payload = await response.json();
+          error = payload.error || error;
+        } catch {
+        }
+
+        throw new Error(error);
+      }
+
+      return response.json();
+    }
+
+    function resizeSignatureCanvas() {
+      const rect = signatureCanvasEl.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      const existingSignature = hasSignature ? signatureCanvasEl.toDataURL('image/png') : null;
+
+      signatureCanvasEl.width = Math.max(1, Math.floor(rect.width * ratio));
+      signatureCanvasEl.height = Math.max(1, Math.floor(rect.height * ratio));
+      signatureContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+      signatureContext.lineCap = 'round';
+      signatureContext.lineJoin = 'round';
+      signatureContext.lineWidth = 3.5;
+      signatureContext.strokeStyle = '#111827';
+
+      if (existingSignature) {
+        const image = new Image();
+        image.onload = () => signatureContext.drawImage(image, 0, 0, rect.width, rect.height);
+        image.src = existingSignature;
+      }
+    }
+
+    function getCanvasPoint(event) {
+      const rect = signatureCanvasEl.getBoundingClientRect();
+      const source = event.touches ? event.touches[0] : event;
+      return {
+        x: source.clientX - rect.left,
+        y: source.clientY - rect.top
+      };
+    }
+
+    function startSignature(event) {
+      event.preventDefault();
+      lastPoint = getCanvasPoint(event);
+
+      if (signatureMethod === 'huella') {
+        hasSignature = true;
+        evidencePointCount += 1;
+        signaturePlaceholderEl.classList.add('hidden');
+        drawFingerprintMark(lastPoint, event);
+        updateSignButtonState();
+        endSignature();
+        return;
+      }
+
+      isDrawing = true;
+    }
+
+    function drawSignature(event) {
+      if (!isDrawing || !lastPoint) {
+        return;
+      }
+
+      event.preventDefault();
+      const point = getCanvasPoint(event);
+      signatureDistance += Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y);
+      evidencePointCount += 1;
+      signatureContext.beginPath();
+      signatureContext.moveTo(lastPoint.x, lastPoint.y);
+      signatureContext.lineTo(point.x, point.y);
+      signatureContext.stroke();
+      lastPoint = point;
+      hasSignature = signatureDistance >= 12;
+      if (hasSignature) {
+        signaturePlaceholderEl.classList.add('hidden');
+      }
+      updateSignButtonState();
+    }
+
+    function drawFingerprintMark(point, event) {
+      const source = event.touches ? event.touches[0] : event;
+      const radiusX = Math.max(34, Math.min(58, source.radiusX ? source.radiusX * 3.2 : 44));
+      const radiusY = Math.max(48, Math.min(76, source.radiusY ? source.radiusY * 3.4 : 62));
+      const pressure = Math.max(0.35, Math.min(1, source.force || 0.7));
+      const rotation = -0.16;
+
+      signatureContext.save();
+      signatureContext.strokeStyle = '#111827';
+      signatureContext.lineWidth = 1.35 + pressure;
+      signatureContext.fillStyle = 'rgba(17, 24, 39, 0.035)';
+      signatureContext.beginPath();
+      signatureContext.ellipse(point.x, point.y, radiusX, radiusY, rotation, 0, Math.PI * 2);
+      signatureContext.fill();
+      signatureContext.stroke();
+
+      for (let i = 0; i < 12; i += 1) {
+        const rx = 7 + i * 4.1;
+        const ry = 12 + i * 5.1;
+        const start = 0.13 + (i % 3) * 0.06;
+        const end = Math.PI * (1.72 + (i % 2) * 0.08);
+        signatureContext.beginPath();
+        signatureContext.ellipse(point.x + Math.sin(i) * 1.6, point.y + 2 + Math.cos(i) * 1.2, rx, ry, rotation, start, end);
+        signatureContext.stroke();
+      }
+
+      for (let i = 0; i < 28; i += 1) {
+        const angle = (i / 28) * Math.PI * 2;
+        const distance = 8 + (i % 7) * 6;
+        const x = point.x + Math.cos(angle) * distance * 0.72;
+        const y = point.y + Math.sin(angle) * distance;
+        signatureContext.beginPath();
+        signatureContext.arc(x, y, 0.7 + (i % 3) * 0.25, 0, Math.PI * 2);
+        signatureContext.fillStyle = 'rgba(17, 24, 39, 0.35)';
+        signatureContext.fill();
+      }
+
+      signatureContext.lineWidth = 2.4;
+      signatureContext.beginPath();
+      signatureContext.moveTo(point.x - 5, point.y - 22);
+      signatureContext.bezierCurveTo(point.x + 18, point.y - 9, point.x + 16, point.y + 10, point.x - 2, point.y + 24);
+      signatureContext.stroke();
+      signatureContext.restore();
+    }
+
+    function endSignature() {
+      isDrawing = false;
+      lastPoint = null;
+    }
+
+    function clearSignature() {
+      signatureContext.clearRect(0, 0, signatureCanvasEl.width, signatureCanvasEl.height);
+      hasSignature = false;
+      signatureDistance = 0;
+      evidencePointCount = 0;
+      signaturePlaceholderEl.classList.remove('hidden');
+      updateSignButtonState();
+    }
+
+    function updateSignButtonState() {
+      signButtonEl.disabled = !acceptTermsEl.checked || !hasSignature;
+    }
+
+    function setSignatureMethod(method) {
+      signatureMethod = method;
+      signatureModeDrawEl.classList.toggle('active', method === 'firma');
+      signatureModeFingerprintEl.classList.toggle('active', method === 'huella');
+      signatureInstructionEl.textContent = method === 'huella'
+        ? 'Apoye el dedo dentro del recuadro para capturar una huella visual'
+        : 'Firme dentro del recuadro con mouse o dedo';
+      signaturePlaceholderEl.textContent = method === 'huella'
+        ? 'Apoye el dedo aqui'
+        : 'Dibuje su firma aqui';
+      clearSignature();
+    }
+
+    async function load() {
+      try {
+        await fetchJson(`/api/firmas/${encodeURIComponent(token)}/validar`);
+        const documentData = await fetchJson(`/api/firmas/${encodeURIComponent(token)}/documento`);
+
+        setText('signerName', documentData.firmante.nombre);
+        setText('signerEmail', documentData.firmante.email);
+        setText('documentType', documentData.tipoDocumento);
+        setText('fileName', documentData.nombreArchivoOriginal);
+        setText('expiresAt', formatDate(documentData.fechaVencimiento));
+        setText('hashOriginal', documentData.hashOriginal);
+        document.getElementById('title').textContent = documentData.tipoDocumento || 'Documento';
+        subtitleEl.textContent = `Estado: ${documentData.estado}`;
+        statusEl.textContent = 'Enlace valido';
+        pdfLinkEl.href = `/api/firmas/${encodeURIComponent(token)}/pdf`;
+        resizeSignatureCanvas();
+      } catch (error) {
+        statusEl.textContent = 'Enlace no disponible';
+        signButtonEl.disabled = true;
+        acceptTermsEl.disabled = true;
+        showMessage(error.message, 'error');
+      }
+    }
+
+    acceptTermsEl.addEventListener('change', () => {
+      updateSignButtonState();
+    });
+
+    clearSignatureButtonEl.addEventListener('click', clearSignature);
+    signatureModeDrawEl.addEventListener('click', () => setSignatureMethod('firma'));
+    signatureModeFingerprintEl.addEventListener('click', () => setSignatureMethod('huella'));
+    signatureCanvasEl.addEventListener('mousedown', startSignature);
+    signatureCanvasEl.addEventListener('mousemove', drawSignature);
+    signatureCanvasEl.addEventListener('mouseup', endSignature);
+    signatureCanvasEl.addEventListener('mouseleave', endSignature);
+    signatureCanvasEl.addEventListener('touchstart', startSignature, { passive: false });
+    signatureCanvasEl.addEventListener('touchmove', drawSignature, { passive: false });
+    signatureCanvasEl.addEventListener('touchend', endSignature);
+    window.addEventListener('resize', resizeSignatureCanvas);
+
+    signButtonEl.addEventListener('click', async () => {
+      signButtonEl.disabled = true;
+      try {
+        const response = await fetchJson(`/api/firmas/${encodeURIComponent(token)}/aceptar`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            aceptaTerminos: true,
+            textoAceptado: 'Acepto firmar electronicamente este documento y dejo constancia de mi conformidad con su contenido.',
+            nombreConfirmado: document.getElementById('signerName').textContent,
+            cuitDniConfirmado: null,
+            firmaImagenBase64: signatureCanvasEl.toDataURL('image/png'),
+            firmaMetodo: signatureMethod,
+            firmaPuntosCapturados: evidencePointCount
+          })
+        });
+
+        subtitleEl.textContent = `Estado: ${response.estado}`;
+        statusEl.textContent = 'Firma confirmada';
+        acceptTermsEl.disabled = true;
+        clearSignatureButtonEl.disabled = true;
+        showMessage(`Firma electronica confirmada el ${formatDate(response.fechaFirma)}.`, 'success');
+      } catch (error) {
+        updateSignButtonState();
+        showMessage(error.message, 'error');
+      }
+    });
+
+    if (isMobileDevice) {
+      signatureModeEl.classList.add('visible');
+    }
+
+    resizeSignatureCanvas();
+    load();
+  </script>
+</body>
+</html>
